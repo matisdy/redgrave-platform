@@ -2,7 +2,7 @@
 select
     order_id,
     upper(trim(customer_ref))       as customer_ref,
-    lower(trim(channel))             as channel,     
+    lower(trim(channel))             as channel,
     lower(trim(status))             as status,
     order_ts,
     to_date(order_ts)                  as order_date,

@@ -54,6 +54,7 @@ with DAG(
         image="redgrave-ingest:1.0.0",
         command="python incremental_orders.py",
         environment={**SNOWFLAKE_ENV, "PGUSER": os.environ.get("PGUSER", ""), "PGPASSWORD": os.environ.get("PGPASSWORD", ""), "PGHOST": os.environ.get("PGHOST", "host.docker.internal")},
+        user=os.environ.get("REDGRAVE_TASK_USER"),
         mounts=KEY_MOUNT,
         mount_tmp_dir=False,
         auto_remove="success",
@@ -64,6 +65,7 @@ with DAG(
         image="redgrave-dbt:1.0.0",
         command="dbt build",
         environment={**SNOWFLAKE_ENV, "DBT_TARGET_PATH": "/tmp/dbt-target", "DBT_LOG_PATH": "/tmp/dbt-logs"},
+        user=os.environ.get("REDGRAVE_TASK_USER"),
         mounts=KEY_MOUNT + [Mount(source=DBT_DIR, target="/app", type="bind", read_only=True)],
         mount_tmp_dir=False,
         auto_remove="success",
@@ -79,6 +81,7 @@ with DAG(
         command="python publish_daily_sales.py --date {{ macros.ds_add(ds, -1) }} --mode merge "
                 "--try-number {{ ti.try_number }} --crash-on-try 1",
         environment=SNOWFLAKE_ENV,
+        user=os.environ.get("REDGRAVE_TASK_USER"),
         mounts=KEY_MOUNT,
         mount_tmp_dir=False,
         auto_remove="success",
