@@ -14,6 +14,7 @@ from docker.types import Mount
 
 # Folder on YOUR computer that contains rsa_key.p8 (set in docker-compose.yml).
 KEYS_DIR = os.environ["REDGRAVE_KEYS_DIR"]
+DBT_DIR = os.environ["REDGRAVE_DBT_DIR"]
 
 SNOWFLAKE_ENV = {
     "SNOWFLAKE_ACCOUNT": os.environ["SNOWFLAKE_ACCOUNT"],
@@ -52,7 +53,7 @@ with DAG(
         task_id="ingest_orders",
         image="redgrave-ingest:1.0.0",
         command="python incremental_orders.py",
-        environment={**SNOWFLAKE_ENV, "PGUSER": os.environ.get("PGUSER", ""), "PGPASSWORD": os.environ.get("PGPASSWORD", "")},
+        environment={**SNOWFLAKE_ENV, "PGUSER": os.environ.get("PGUSER", ""), "PGPASSWORD": os.environ.get("PGPASSWORD", ""), "PGHOST": os.environ.get("PGHOST", "host.docker.internal")},
         mounts=KEY_MOUNT,
         mount_tmp_dir=False,
         auto_remove="success",
@@ -62,8 +63,8 @@ with DAG(
         task_id="dbt_build",
         image="redgrave-dbt:1.0.0",
         command="dbt build",
-        environment=SNOWFLAKE_ENV,
-        mounts=KEY_MOUNT,
+        environment={**SNOWFLAKE_ENV, "DBT_TARGET_PATH": "/tmp/dbt-target", "DBT_LOG_PATH": "/tmp/dbt-logs"},
+        mounts=KEY_MOUNT + [Mount(source=DBT_DIR, target="/app", type="bind", read_only=True)],
         mount_tmp_dir=False,
         auto_remove="success",
     )
