@@ -1,0 +1,19 @@
+# Local credentials and runtime files
+.env
+.env.*
+!.env.example
+*.p8
+*.pem
+terraform.tfvars
+*.auto.tfvars
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfplan
+crash.log
+__pycache__/
+*.pyc
+logs/
+images/
+*.tar
+.DS_Store
